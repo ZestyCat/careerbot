@@ -143,5 +143,5 @@ const scrobble = async (artist, track) => {
 	
 	}
 }
-authBtn.addEventListener("click", authenticate)
-scrobbleBtn.addEventListener("click", () => {scrobble('Rick Astley', 'Never Gonna Give You Up')})
+//authBtn.addEventListener("click", authenticate)
+//scrobbleBtn.addEventListener("click", () => {scrobble('Rick Astley', 'Never Gonna Give You Up')})
