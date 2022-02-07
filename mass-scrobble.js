@@ -14,15 +14,15 @@ const plot = async () => {
 	const data = await getTopTracks('g_biz')
 
 	let width = 500
-	let barWidth = width/data.length-2
-	let height = barWidth * data.length
+	let barHeight = 20 
+	let height = (barHeight + 2) * data.length
 
 	let xScale = d3.scaleLinear()
-		.domain([0, data.length])
-		.range([0, width])
-
-	let yScale = d3.scaleLinear()
 		.domain([0, Math.max(...data.map(d => { return d.playcount }))])
+		.range([0, width])
+	
+	let yScale = d3.scaleLinear()
+		.domain([0, data.length])
 		.range([0, height])
 
 	let plot = d3.select("#divplot")
@@ -35,9 +35,9 @@ const plot = async () => {
 	.enter()
 	.append('svg:rect')
 	.attr('x', xScale(0))
-	.attr('y', (datum, index) => { return xScale(index) })
-	.attr('width', datum => { return yScale(datum.playcount) })
-	.attr('height', barWidth )
+	.attr('y', (datum, index) => { return yScale(index) })
+	.attr('width', datum => { return xScale(datum.playcount) })
+	.attr('height', barHeight )
 	.attr('fill', '#2d578b')
 
 	plot.selectAll('text')
@@ -46,10 +46,10 @@ const plot = async () => {
 	.append('svg:text')
 	.attr('x', datum => { return xScale(datum.playcount) })
 	.attr('y', (datum, index) => { return yScale(index) })
-	.attr('dy', barWidth)
-	.attr('dx', '1.2em')
+	.attr('dy', barHeight/1.3)
+	.attr('dx', '-0.5em')
 	.attr('text-anchor', 'end')
-	//.attr("style", "font-size: 6; font-family: Times New Roman")
+	.attr("style", "font-size: 6; font-family: Times New Roman")
 	.text(datum => { return datum.playcount })
 	.attr('fill', 'white')
 /*
@@ -57,9 +57,9 @@ const plot = async () => {
 	.data(data)
 	.enter()
 	.append('svg:text')
-	.attr('x', (datum, index) => { return xScale(index) + barWidth })
+	.attr('x', (datum, index) => { return xScale(index) + barHeight })
 	.attr('y', height)
-	.attr('dx', -barWidth/2)
+	.attr('dx', -barHeight/2)
 	.attr('text-anchor', 'middle')
 	.attr("style", "font-size: 10; font-family: Times New Roman")
 	.text(datum => { return datum.name })
