@@ -1,34 +1,66 @@
-const urlInput = document.getElementById("urlInput")
+const textInput = document.getElementById("input")
+
 const getKeywords = document.getElementById("getKeywords")
 
-const makeYakeUrl = (url, { method= "extract_keywords_by_url", max_size= 1, n_keywords= 20, highlight= false} = {}) => {
+/* Remove extra space from text input */
+const squishInput = (input) => {
+
+	/* Do some stuff */
 	
-	let encoded = encodeURIComponent(url)
+	return output
+
+}
+
+/* Make url for yake http request */
+const makeYakeUrl = (input, { method= "extract_keywords", max_size= 3, n_keywords= 20, highlight= false} = {}) => {
+	
+	let encoded = encodeURIComponent(`${input}`)
 
 	let API = "https://boiling-castle-88317.herokuapp.com/yake/v2/"
 
-	let requestUrl = `${API}${method}?url=${encoded}&max_ngram_size=${max_size}&number_of_keywords=${n_keywords}&highlight=${highlight}`
-
+	let requestUrl = `${API}${method}?content=${encoded}&max_ngram_size=${max_size}&number_of_keywords=${n_keywords}&highlight=${highlight}`
+	
 	return(requestUrl)
 
 }
 
+/* Send yake request and return the promise */
 const sendYakeRequest = async (url) => {
 	
-	fetch(url, {
+	return fetch(url, {
 	
-		method: "GET",
-hello
+		method: "GET"
+
 	})
 	
 	.then(response => response.json())
 
-	.then(data => {
-
-		console.log(data)
-
-	})
+	.catch(err => console.log(err))
 
 }
 
-getKeywords.addEventListener("click", () => sendYakeRequest(makeYakeUrl("https://github.com/neoclide/coc-tsserver")))
+/* Sends a yake request for each 1000 character text block*/
+const yakeEveryBlock = async input => {
+	
+	keywords = []
+
+	for (let i = 0; i < input.length; i = i + 1000) {
+		
+		let block = input.slice(i, i + 1000)
+
+		let url = makeYakeUrl(block)
+
+		let data = await sendYakeRequest(url)
+		
+		for (k = 0; k < data.keywords.length; k++) {
+
+			keywords.push(data.keywords[k])
+	
+		}
+	}
+
+	return keywords
+
+} 
+
+getKeywords.addEventListener("click", () => { yakeEveryBlock(textInput.value)})
