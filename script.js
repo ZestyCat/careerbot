@@ -1,4 +1,6 @@
-const textInput = document.getElementById("input")
+const textInput_1 = document.getElementById("input_1")
+
+const textInput_2 = document.getElementById("input_2")
 
 const getKeywords = document.getElementById("getKeywords")
 
@@ -54,7 +56,7 @@ const yakeEveryBlock = async input => {
 		
 		for (k = 0; k < data.keywords.length; k++) {
 
-			keywords.push(data.keywords[k])
+			keywords.push(data.keywords[k].ngram)
 	
 		}
 	}
@@ -63,4 +65,17 @@ const yakeEveryBlock = async input => {
 
 } 
 
-getKeywords.addEventListener("click", () => { yakeEveryBlock(textInput.value)})
+
+const compareInputs = async (a, b) => {
+
+	let kw_a = await yakeEveryBlock(a)
+
+	let kw_b = await yakeEveryBlock(b)
+
+	let j = index(kw_a, kw_b)
+
+	console.log(j)
+
+}
+
+getKeywords.addEventListener("click", () => { compareInputs(textInput_1.value, textInput_2.value)})
