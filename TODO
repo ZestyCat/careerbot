@@ -1,4 +1,5 @@
 - Scrape listings
+	* JSON from workday may be promising
 - Classify jobs
 - Subtract common words
 	* Common terms across all listings

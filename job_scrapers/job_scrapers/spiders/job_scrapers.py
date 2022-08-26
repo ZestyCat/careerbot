@@ -4,7 +4,6 @@ import w3lib.html
 import csv
 import re
 import json
-import requests
 
 class BoozSpider(scrapy.Spider):
     name = "boozjobs"
@@ -58,5 +57,20 @@ class NorthropSpider(scrapy.Spider):
 class MontroseScraper(scrapy.Spider):
     name = "montrosejobs"
 
-    base_url = "https://montrose.wd1.myworkdayjobs.com/en-US/MEG"
+    with open("./montrose_listings.json") as f:
+        jobs = json.loads(f.read())
+        urls = [job["externalPath"] for job in jobs["jobPostings"]]
 
+    def start_requests(self, urls = urls):
+        base_url = "https://montrose.wd1.myworkdayjobs.com/wday/cxs/montrose/MEG"
+        for url in urls:
+            yield scrapy.Request(url=base_url+url, callback=self.get_page)
+
+    def get_page(self, response):
+        job = re.sub(r"[^a-zA-z0-9\s]","",response.json()["jobPostingInfo"]["title"])
+        description = re.sub(r"[^a-zA-z0-9\s]","",w3lib.html.remove_tags( \
+                response.json()["jobPostingInfo"]["jobDescription"]))
+        with open("jobs.csv", "a") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Montrose", job, description])
+            print(job)
