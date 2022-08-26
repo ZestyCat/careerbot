@@ -1,0 +1,9 @@
+- Scrape listings
+- Classify jobs
+- Subtract common words
+	* Common terms across all listings
+	* Employer Name
+	* Find with YAKE
+	* EEO 
+	* Stopwords
+- Resume pdf reader
