@@ -20,8 +20,8 @@ class BoozSpider(scrapy.Spider):
             yield scrapy.Request(url=link, callback=self.get_page)
 
     def get_page(self, response):
-        job = re.sub(r"[^a-zA-z0-9\s]","",response.css("title::text").get().strip())
-        description = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9-\s]","",w3lib.html.remove_tags( \
+        job = re.sub(r"[^a-zA-z0-9\s]"," ",response.css("title::text").get().strip())
+        description = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9-\s]"," ",w3lib.html.remove_tags( \
                 response.css("div.article__content--rich-text").get()) \
                 .strip()))
         with open ("jobs.csv", "a") as file:
@@ -46,9 +46,9 @@ class NorthropSpider(scrapy.Spider):
                 yield scrapy.Request(url=link, callback=self.get_page)
 
     def get_page(self, response):
-        job = re.sub(r"[^a-zA-z0-9\s]","",response.css("title::text").get())
-        description = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9\s]","",w3lib.html.remove_tags( \
-                response.css("div.jobContent").get().strip().replace("\n", "") )))
+        job = re.sub(r"[^a-zA-z0-9\s]"," ",response.css("title::text").get())
+        description = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9\s]"," ",w3lib.html.remove_tags( \
+                response.css("div.jobContent").get().strip().replace("\n", " ") )))
         with open("jobs.csv", "a") as file:
             writer = csv.writer(file, delimiter=",")
             writer.writerow(["Northrop Grumman", job, description])
@@ -67,8 +67,8 @@ class MontroseScraper(scrapy.Spider):
             yield scrapy.Request(url=base_url+url, callback=self.get_page)
 
     def get_page(self, response):
-        job = re.sub(r"[^a-zA-z0-9\s]","",response.json()["jobPostingInfo"]["title"])
-        description = re.sub(r"[^a-zA-z0-9\s]","",w3lib.html.remove_tags( \
+        job = re.sub(r"[^a-zA-z0-9\s]"," ",response.json()["jobPostingInfo"]["title"])
+        description = re.sub(r"[^a-zA-z0-9\s]"," ",w3lib.html.remove_tags( \
                 response.json()["jobPostingInfo"]["jobDescription"]))
         with open("jobs.csv", "a") as file:
             writer = csv.writer(file)
@@ -85,11 +85,11 @@ class AmazonSpider(scrapy.Spider):
 
     def get_data(self, response):
         for job in response.json()["jobs"]:
-            title = re.sub(r"[^a-zA-z0-9\s]","",job["title"])
-            description = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9\s]","",w3lib.html.remove_tags( \
+            title = re.sub(r"[^a-zA-z0-9\s]"," ",job["title"])
+            description = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9\s]"," ",w3lib.html.remove_tags( \
                     job["description"].strip().replace("\n", "") )))
-            qualifications = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9\s]","",w3lib.html.remove_tags( \
-                    job["preferred_qualifications"].strip().replace("\n", "") )))
+            qualifications = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9\s]"," ",w3lib.html.remove_tags( \
+                    job["preferred_qualifications"].strip().replace("\n", " ") )))
             with open("jobs.csv", "a") as file:
                 writer = csv.writer(file)
                 writer.writerow(["Amazon", title, description + " " + qualifications])
