@@ -7,4 +7,14 @@
 	* Find with YAKE
 	* EEO 
 	* Stopwords
+
+- Get job categories
+- Get keywords where job matches category
+- Make json file
+JSON file
+{
+    category_1 : [keyword list],
+    category_2 : [keyword list]
+    etc etc
+}
 - Resume pdf reader
