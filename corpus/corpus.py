@@ -28,5 +28,7 @@ common = kwx_common.extract_keywords(descriptions)
 
 # get keywords by job category
 print("getting keywords by category...")
-jobs[jobs["title"].str.contains(cat)]
-
+for cat in categories:
+    desc = " ".join(jobs[jobs["title"].str.contains(cat[0])]["description"].to_list())
+    kwx_keywords = yake.KeywordExtractor(n=1)
+    print(kwx_keywords.extract_keywords(desc))
