@@ -23,7 +23,7 @@ class BoozSpider(scrapy.Spider):
         job = re.sub(r"[^a-zA-z0-9\s]"," ",response.css("title::text").get().strip())
         description = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9-\s]"," ",w3lib.html.remove_tags( \
                 response.css("div.article__content--rich-text").get()) \
-                .strip()))
+                .strip())).replace("'", "")
         with open ("jobs.csv", "a") as file:
             writer = csv.writer(file, delimiter=",")
             writer.writerow(["Booz Allen Hamilton", job, description])
@@ -48,7 +48,8 @@ class NorthropSpider(scrapy.Spider):
     def get_page(self, response):
         job = re.sub(r"[^a-zA-z0-9\s]"," ",response.css("title::text").get())
         description = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9\s]"," ",w3lib.html.remove_tags( \
-                response.css("div.jobContent").get().strip().replace("\n", " ") )))
+                response.css("div.jobContent").get().strip().replace("\n", " ") ))).replace("'", "")
+
         with open("jobs.csv", "a") as file:
             writer = csv.writer(file, delimiter=",")
             writer.writerow(["Northrop Grumman", job, description])
@@ -69,7 +70,7 @@ class MontroseScraper(scrapy.Spider):
     def get_page(self, response):
         job = re.sub(r"[^a-zA-z0-9\s]"," ",response.json()["jobPostingInfo"]["title"])
         description = re.sub(r"[^a-zA-z0-9\s]"," ",w3lib.html.remove_tags( \
-                response.json()["jobPostingInfo"]["jobDescription"]))
+                response.json()["jobPostingInfo"]["jobDescription"])).replace("'", "")
         with open("jobs.csv", "a") as file:
             writer = csv.writer(file)
             writer.writerow(["Montrose", job, description])
@@ -78,19 +79,17 @@ class MontroseScraper(scrapy.Spider):
 class AmazonSpider(scrapy.Spider):
     name = "amazonjobs"
     
-    def start_requests(self, n_jobs = 5000):
+    def start_requests(self, n_jobs = 500):
         for offset in np.arange(0, n_jobs, 100):
-            url = f"https://www.amazon.jobs/en/search.json?radius=5000km&facets[]=normalized_country_code&facets[]=normalized_state_name&facets[]=normalized_city_name&facets[]=location&facets[]=business_category&facets[]=category&facets[]=schedule_type_id&facets[]=employee_class&facets[]=normalized_location&facets[]=job_function_id&facets[]=is_manager&facets[]=is_intern&offset={offset}&result_limit=100sort=relevant&latitude=&longitude=&loc_group_id=&loc_query=&base_query=&city=&country=&region=&county=&query_options=&category[]=software-development&"
+            url = f"https://www.amazon.jobs/en/search.json?radius=5000km&facets[]=normalized_country_code&facets[]=normalized_state_name&facets[]=normalized_city_name&facets[]=location&facets[]=business_category&facets[]=category&facets[]=schedule_type_id&facets[]=employee_class&facets[]=normalized_location&facets[]=job_function_id&facets[]=is_manager&facets[]=is_intern&offset={offset}&result_limit=100sort=relevant&latitude=&longitude=&loc_group_id=&loc_query=&base_query=&city=&country=USA&region=&county=&query_options=&category[]=software-development&"
             yield scrapy.Request(url=url, callback=self.get_data)
 
     def get_data(self, response):
         for job in response.json()["jobs"]:
             title = re.sub(r"[^a-zA-z0-9\s]"," ",job["title"])
-            description = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9\s]"," ",w3lib.html.remove_tags( \
-                    job["description"].strip().replace("\n", "") )))
-            qualifications = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9\s]"," ",w3lib.html.remove_tags( \
-                    job["preferred_qualifications"].strip().replace("\n", " ") )))
+            qualifications = re.sub(" +"," ",re.sub(r"[,]","",w3lib.html.remove_tags( \
+                    job["preferred_qualifications"].replace("\n", "") ))).replace("'", "")
             with open("jobs.csv", "a") as file:
                 writer = csv.writer(file)
-                writer.writerow(["Amazon", title, description + " " + qualifications])
+                writer.writerow(["Amazon", title, qualifications])
                 print(job)
