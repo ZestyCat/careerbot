@@ -5,6 +5,17 @@ import csv
 import re
 import json
 
+def clean_text(text):
+    """ Remove html tags, hashtags, email address, urls, slashes, special chars, double periods """
+    cleaned = \
+        re.sub(r"(\s+)|(\n)", " ",
+        re.sub(r"(\.\.)|(\.\s+){2,}", ". ", 
+        re.sub(r"([^a-zA-z0-9\s\-\.#])","",
+        re.sub(r"/", " ", 
+        re.sub(r"(#\S+)|(\S+@\S+\.\S{3})|(https{0,1}://\S+)|(\S{3}\.\S+\.\S{3}\.\S+)|(\S+\.com)|([\[\]])", " ",
+        re.sub(r"(<.*?>)+", ". ", text))))))
+    return cleaned
+
 class BoozSpider(scrapy.Spider):
     name = "boozjobs"
 
@@ -21,8 +32,7 @@ class BoozSpider(scrapy.Spider):
 
     def get_page(self, response):
         job = re.sub(r"[^a-zA-z0-9\s\-]"," ",response.css("title::text").get().strip())
-        description = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9-\s]"," ",w3lib.html.remove_tags( \
-                response.css("div.article__content--rich-text").get())))
+        description = clean_text(response.css("div.article__content--rich-text").get())
         with open ("jobs.csv", "a") as file:
             writer = csv.writer(file, delimiter=",")
             writer.writerow(["Booz Allen Hamilton", job, description])
@@ -31,7 +41,7 @@ class BoozSpider(scrapy.Spider):
 class NorthropSpider(scrapy.Spider):
     name = "northropjobs"
 
-    def start_requests(self, n_pages = 300):        
+    def start_requests(self, n_pages = 3):        
         for j in range(1, n_pages):
             url = 'https://www.northropgrumman.com/jobs/page/{}/'.format(int(j))
             yield scrapy.Request(url=url, callback=self.get_links)
@@ -46,8 +56,7 @@ class NorthropSpider(scrapy.Spider):
 
     def get_page(self, response):
         job = re.sub(r"[^a-zA-z0-9\s\-]"," ",response.css("title::text").get())
-        description = re.sub(" +"," ",re.sub(r"[^a-zA-z0-9\s\-]"," ",w3lib.html.remove_tags( \
-                response.css("div.jobContent").get().strip().replace("\n", " ") ))).replace("'", "")
+        description = clean_text(response.css("div.jobContent").get())
 
         with open("jobs.csv", "a") as file:
             writer = csv.writer(file, delimiter=",")
@@ -68,8 +77,7 @@ class MontroseScraper(scrapy.Spider):
 
     def get_page(self, response):
         job = re.sub(r"[^a-zA-z0-9\s\-]"," ",response.json()["jobPostingInfo"]["title"])
-        description = re.sub(r"[^a-zA-z0-9\s\-]"," ",w3lib.html.remove_tags( \
-                response.json()["jobPostingInfo"]["jobDescription"])).replace("'", "")
+        description = clean_text(response.json()["jobPostingInfo"]["jobDescription"])
         with open("jobs.csv", "a") as file:
             writer = csv.writer(file)
             writer.writerow(["Montrose", job, description])
@@ -87,12 +95,7 @@ class AmazonSpider(scrapy.Spider):
         for job in response.json()["jobs"]:
             title = re.sub(r"[^a-zA-z0-9\s\-]"," ",job["title"])
             # remove tags, slashes, hashtags, emails, urls, special chars, finally double periods
-            qualifications = \
-                    re.sub(r"[^a-zA-z0-9\s\-\.#]","",
-                    re.sub(r"/", " ", 
-                    re.sub(r"(\.{2,})+|\. +\.", ".", 
-                        re.sub(r"(#\S+)|(\S+@\S+\.\S{3})|(https{0,1}://\S+)|(\S{3}\.\S+\.\S{3}\.\S+)|(\S+\.com)|([\[\]])", " ",
-                    re.sub(r"(<.*?>)+", r". ", job["preferred_qualifications"])))))
+            qualifications = clean_text(job["preferred_qualifications"])
             with open("jobs.csv", "a") as file:
                 writer = csv.writer(file)
                 writer.writerow(["Amazon", title, qualifications])

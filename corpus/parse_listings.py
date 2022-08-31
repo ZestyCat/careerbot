@@ -7,12 +7,6 @@ from nltk.tokenize import sent_tokenize
 from nltk.probability import FreqDist
 import nltk
 
-print("reading csv...")
-jobs = pd.DataFrame(pd.read_csv("./data/jobs.csv", names = ["company", "title", "description"]))
-jobs["company"] = jobs["company"].str.lower()
-jobs["title"] = jobs["title"].str.lower()
-jobs["description"] = jobs["description"].str.lower()
-
 # get stopwords
 def get_stops(common = True, files = None):
     words = []
@@ -52,10 +46,15 @@ def filter_sentences(sentences, stopwords, tolerance = .1):
     return " ".join(filtered)
 
 if __name__ == "__main__":
+    print("reading csv...")
+    jobs = pd.DataFrame(pd.read_csv("./data/jobs.csv", names = ["company", "title", "description"]))
+    jobs["company"] = jobs["company"].str.lower()
+    jobs["title"] = jobs["title"].str.lower()
+    jobs["description"] = jobs["description"].str.lower()
     # tag and filter tokens
     ignore = get_stops(common = False, files = ["./data/eeo_terms.txt", "./data/benefit_terms.txt"])
     stops = get_stops(common = True, files = ["./data/eeo_terms.txt", "./data/benefit_terms.txt"])
-    selection = select_jobs(jobs, "amazon")
+    selection = select_jobs(jobs, "northrop", "engineer")
     porter = PorterStemmer()
 
     sentences = filter_sentences(sent_tokenize(" ".join(selection["description"].to_list())), ignore)
