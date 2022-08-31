@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # tag and filter tokens
     ignore = get_stops(common = False, files = ["./data/eeo_terms.txt", "./data/benefit_terms.txt"])
     stops = get_stops(common = True, files = ["./data/eeo_terms.txt", "./data/benefit_terms.txt"])
-    selection = select_jobs(jobs, "amazon", "engineer")
+    selection = select_jobs(jobs, "amazon")
     porter = PorterStemmer()
 
     sentences = filter_sentences(sent_tokenize(" ".join(selection["description"].to_list())), ignore)
