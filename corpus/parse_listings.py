@@ -14,45 +14,63 @@ jobs["title"] = jobs["title"].str.lower()
 jobs["description"] = jobs["description"].str.lower()
 
 # get stopwords
-with open("data/eeo_terms.txt") as f:
-    eeo = f.read().split(" ")
-with open("data/common.txt") as f:
-    common = f.read().split(" ")
-stops = " ".join(set(stopwords.words("english") + eeo + common))
+def get_stops(common = True, files = None):
+    words = []
+    if files:
+        for file in files:
+            with open(file) as f:
+                words = words + f.read().split(" ")
+    if common:
+        words = words + stopwords.words("english")
+    return " ".join(set(words))
+
+def select_jobs(df, company = "", title = ""):
+    selection = df[df["company"].str.contains(company)] \
+            [df["title"].str.contains(title)]
+    return selection
 
 # Tokenize
-company, description = "amazon", "engineer"
-selection = jobs[jobs["company"].str.contains(company)] \
-        [jobs["description"].str.contains(description)]
-tokens = [word for word in word_tokenize(selection["description"].to_string()) \
-        if word.isalpha()]
+def tokenize_jobs(selection):
+    tokens = [word for word in word_tokenize(selection["description"].to_string()) \
+            if word.isalpha()]
+    return tokens
 
 # get eeo-related sentences to discard
-sentences = sent_tokenize(" ".join(selection["description"].to_list()))
-def filter_sentences(sentences, filter_words, tolerance = .20):
-    """  Remove sentences if they have too high ratio of listed terms """
+def filter_sentences(sentences, stopwords, tolerance = .1):
+    """  Remove sentences from text if they have too high ratio of stopwords """
     filtered = []
+    if type(stopwords) is str:
+        stopwords = stopwords.split(" ")
     for s in sentences:
         tok = word_tokenize(s)
-        n = set(t for t in tok).intersection(e for e in eeo)
+        n = set(t for t in tok).intersection(f for f in stopwords)
         ratio = len(n) / len(tok)
-        if ratio > tolerance:
-            continue
-        if ratio < tolerance:
+        if ratio >= tolerance:
+            continue 
+        else:
             filtered.append(s)
-    return filtered
+    return " ".join(filtered)
 
-# tag and filter tokens
-tag_filt = [tok for tok in nltk.pos_tag(tokens) if tok[0] not in stops]
-key_tags = pd.DataFrame({"word" : [tok[0] for tok in tag_filt],
-                   "tag" : [tok[1] for tok in tag_filt]})
-key_list = key_tags[key_tags["tag"].str.contains("NN")]["word"].to_list()
+if __name__ == "__main__":
+    # tag and filter tokens
+    ignore = get_stops(common = False, files = ["./data/eeo_terms.txt", "./data/benefit_terms.txt"])
+    stops = get_stops(common = True, files = ["./data/eeo_terms.txt", "./data/benefit_terms.txt"])
+    selection = select_jobs(jobs, "amazon", "engineer")
+    porter = PorterStemmer()
+
+    sentences = filter_sentences(sent_tokenize(" ".join(selection["description"].to_list())), ignore)
+    tokens = word_tokenize(sentences)
+
+    tag_filt = [tok for tok in nltk.pos_tag(tokens) if porter.stem(tok[0]) not in stops]
+    key_tags = pd.DataFrame({"word" : [tok[0] for tok in tag_filt],
+                       "tag" : [tok[1] for tok in tag_filt]})
+    key_list = key_tags[key_tags["tag"].str.contains("NN")]["word"].to_list()
 
 
-porter = PorterStemmer()
-trigrams = nltk.trigrams([t for t in tokens if porter.stem(t) not in stops])
+    ignore_stems = [porter.stem(w) for w in ignore.split(" ")]
+    trigrams = nltk.trigrams([s for s in sentences.split(" ") if porter.stem(s) not in ignore_stems])
 
-fdist_1 = FreqDist(key_list).most_common(50)
-fdist_3 = FreqDist(trigrams).most_common(20)
+    fdist_1 = FreqDist(key_list).most_common(100)
+    fdist_3 = FreqDist(trigrams).most_common(20)
 
-print(fdist_1)
+    print(fdist_1)

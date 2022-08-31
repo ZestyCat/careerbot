@@ -86,8 +86,13 @@ class AmazonSpider(scrapy.Spider):
     def get_data(self, response):
         for job in response.json()["jobs"]:
             title = re.sub(r"[^a-zA-z0-9\s\-]"," ",job["title"])
-            qualifications = re.sub(r"[^a-zA-z0-9\s\-\./]","", re.sub(r"[/ +\\]"," ",w3lib.html.replace_tags( \
-                    job["preferred_qualifications"], " ")))
+            # remove tags, slashes, hashtags, emails, urls, special chars, finally double periods
+            qualifications = \
+                    re.sub(r"[^a-zA-z0-9\s\-\.#]","",
+                    re.sub(r"/", " ", 
+                    re.sub(r"(\.{2,})+|\. +\.", ".", 
+                        re.sub(r"(#\S+)|(\S+@\S+\.\S{3})|(https{0,1}://\S+)|(www\.\S+\.\S+)([\[\]])", " ",
+                    re.sub(r"(<.*?>)+", r". ", job["preferred_qualifications"])))))
             with open("jobs.csv", "a") as file:
                 writer = csv.writer(file)
                 writer.writerow(["Amazon", title, qualifications])
