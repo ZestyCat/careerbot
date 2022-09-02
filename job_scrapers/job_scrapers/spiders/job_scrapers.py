@@ -1,25 +1,27 @@
 import scrapy
 import numpy as np
-import w3lib.html
 import csv
 import re
 import json
 
-def clean_text(text):
-    """ Remove html tags, hashtags, email address, urls, slashes, special chars, double periods """
+def clean_text(text, re_sub = (r"", r"")):
+    """ Remove html tags, hashtags, email address, urls, slashes, special chars, double periods 
+        Use re_sub param to pass extra params to re.sub before text cleaning
+    """
     cleaned = \
         re.sub(r"(\s+)|(\n)", " ",
         re.sub(r"(\.\.)|(\.\s+){2,}", ". ", 
         re.sub(r"([^a-zA-z0-9\s\-\.#])","",
         re.sub(r"/", " ", 
-        re.sub(r"(#\S+)|(\S+@\S+\.\S{3})|(https{0,1}://\S+)|(\S{3}\.\S+\.\S{3}\.\S+)|(\S+\.com)|([\[\]])", " ",
-        re.sub(r"(<.*?>)+", ". ", text))))))
+        re.sub(r"(\s#\S+)|(\S+@\S+\.\S{3})|(https{0,1}://\S+)|(\S{3}\.\S+\.\S{3}\.\S+)|(\S+\.com)|([\[\]])", " ",
+        re.sub(r"(<.*?>)+", r". ",
+        re.sub(re_sub[0], re_sub[1], text)))))))
     return cleaned
 
 class BoozSpider(scrapy.Spider):
     name = "boozjobs"
 
-    def start_requests(self, n_jobs = 500):        
+    def start_requests(self, n_jobs = 20):        
         for j in np.arange(0, n_jobs, 10):
             if j == 0:
                 continue
@@ -32,7 +34,7 @@ class BoozSpider(scrapy.Spider):
 
     def get_page(self, response):
         job = re.sub(r"[^a-zA-z0-9\s\-]"," ",response.css("title::text").get().strip())
-        description = clean_text(response.css("div.article__content--rich-text").get())
+        description = clean_text(response.css("div.article__content--rich-text").get(), re_sub=(r"(</{0,1}span?>)+", ""))
         with open ("jobs.csv", "a") as file:
             writer = csv.writer(file, delimiter=",")
             writer.writerow(["Booz Allen Hamilton", job, description])
