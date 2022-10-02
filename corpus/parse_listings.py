@@ -72,8 +72,8 @@ if __name__ == "__main__":
     stops = get_stops(common = True, files = ["./data/eeo_terms.txt", "./data/benefit_terms.txt"])
     
     print("searching for jobs with specified titles...")
-    titles = make_search(["frontend"]) # make lookahead regex to search title with
-    selection = select_jobs(jobs, company="", title=titles)
+    titles = make_search([""]) # make lookahead regex to search title with
+    selection = select_jobs(jobs, company="ATAC", title=titles)
     
     print("filtering sentences with too many stopwords...")
     sentences = filter_sentences(sent_tokenize(" ".join(selection["description"].to_list())), fluff)
@@ -82,8 +82,7 @@ if __name__ == "__main__":
     tokens = word_tokenize(sentences)
 
     print("removing stopwords from tokens...")
-    porter = PorterStemmer()
-    tag_filt = [tok for tok in nltk.pos_tag(tokens) if porter.stem(tok[0]).lower() not in stops]
+    tag_filt = [tok for tok in nltk.pos_tag(tokens) if tok[0].lower() not in stops]
 
     print("extracting key skills...")
     key_tags = pd.DataFrame({"word" : [tok[0] for tok in tag_filt],
@@ -91,10 +90,9 @@ if __name__ == "__main__":
     key_list = key_tags[key_tags["tag"].str.contains("NN")]["word"].to_list()
 
     print("extracting key phrases...")
+    porter = PorterStemmer()
     ignore_stems = [porter.stem(w) for w in fluff.split(" ")]
     trigrams = nltk.trigrams([s for s in sentences.split(" ") if porter.stem(s) not in ignore_stems])
 
     fdist_1 = FreqDist(key_list).most_common(100)
     fdist_3 = FreqDist(trigrams).most_common(20)
-
-    print(fdist_1, fdist_3)

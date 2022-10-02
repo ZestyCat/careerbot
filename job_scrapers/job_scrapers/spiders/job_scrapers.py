@@ -101,4 +101,3 @@ class AmazonSpider(scrapy.Spider):
             with open("jobs.csv", "a") as file:
                 writer = csv.writer(file)
                 writer.writerow(["Amazon", title, qualifications])
-                print(job)
