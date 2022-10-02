@@ -1,11 +1,12 @@
 from scrapingbee import ScrapingBeeClient
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
+from stealth_drive import lurk
 import re
 import pandas as pd
 
 
-api_key = "5GCDSFBMAEZYROB3GRM4ZW2M8R4M90ET20SPXEQDFAS0UOCRHLN2B223FFXZGLJ17F3Q3U9GLEIALEWN"
+api_key = ""
 client = ScrapingBeeClient(api_key)
 
 
@@ -27,7 +28,6 @@ listings = {"title" : [],
             "schedule": [],
             "employment": []}
 
-
 def get_listing_urls(client, base_url = "https://www.indeed.com/jobs?q={}&l={}&start={}", 
                      query="", location="USA", start=0, attempts=3, logfile="./log.txt"):
     url = base_url.format(query, location, str(start))
@@ -44,7 +44,7 @@ def get_listing_urls(client, base_url = "https://www.indeed.com/jobs?q={}&l={}&s
     urls = [urljoin("https://www.indeed.com", href) for href in r.json()["hrefs"]]
     return urls
 
-@get_until_got(n_tries=3, logfile="./log.txt")
+@lurk.get_until_got(n_tries=3, logfile="./log.txt")
 def get_listing_data(client, url, attempts=3):
     for i in range(0, attempts):
         r = client.get(url, params={
