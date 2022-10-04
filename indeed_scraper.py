@@ -6,7 +6,7 @@ import re
 import pandas as pd
 
 
-api_key = ""
+api_key = 
 client = ScrapingBeeClient(api_key)
 
 
@@ -32,7 +32,7 @@ def get_listing_urls(client, base_url = "https://www.indeed.com/jobs?q={}&l={}&s
                      query="", location="USA", start=0, attempts=3, logfile="./log.txt"):
     url = base_url.format(query, location, str(start))
     r = client.get(url, params={
-        "render_js": "False",
+        "render_js": "True",
         "extract_rules": {
             "hrefs": {
                 "selector": "a.jcs-JobTitle",
@@ -52,7 +52,25 @@ def get_listing_data(client, url, attempts=3):
             "extract_rules": {
                 "title": "h1",
                 "company": "div.icl-u-lg-mr--sm",
-                "description": "#jobDescriptionText"
+                "description": "#jobDescriptionText",
+                "salary" : "span.icl-u-xs-mr--xs",
+                "type": "jobsearch-JobDescriptionSection-sectionItem:nth-child(2)"
             }
         })
         return r
+
+if __name__ == "__main__":
+    urls = get_listing_urls(client)
+    data = {"title": [],
+            "company": [],
+            "description": [],
+            "salary": [],
+            "type": []}
+    for url in urls:
+        json = get_listing_data(client, urls[0]).json()
+        data["title"].append(json["title"])
+        data["company"].append(json["company"])
+        data["description"].append(json["description"])
+        data["salary"].append(json["salary"])
+        data["type"].append(json["type"])
+
