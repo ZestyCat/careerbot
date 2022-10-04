@@ -6,7 +6,7 @@ import re
 import pandas as pd
 
 
-api_key = 
+api_key = "5GCDSFBMAEZYROB3GRM4ZW2M8R4M90ET20SPXEQDFAS0UOCRHLN2B223FFXZGLJ17F3Q3U9GLEIALEWN"
 client = ScrapingBeeClient(api_key)
 
 
@@ -51,7 +51,7 @@ def get_listing_data(client, url, attempts=3):
             "render_js": "False",
             "extract_rules": {
                 "title": "h1",
-                "company": "div.icl-u-lg-mr--sm",
+                "company": "div.jobsearch-InlineCompanyRating-companyHeader > a",
                 "description": "#jobDescriptionText",
                 "salary" : "span.icl-u-xs-mr--xs",
                 "type": "jobsearch-JobDescriptionSection-sectionItem:nth-child(2)"
